@@ -1,0 +1,61 @@
+stages:
+  - test
+  - build-and-push
+
+cache:
+  key:
+    files:
+      - pom.xml
+  paths:
+    - .m2/repository/
+    - target/
+  policy: pull-push
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true"
+  DOCKER_HOST: tcp://docker:2376
+  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_TLS_VERIFY: 1
+  DOCKER_CERT_PATH: "/certs/client"
+
+sast:
+  stage: test
+include:
+  - template: Security/SAST.gitlab-ci.yml
+
+build-and-push-native:
+  stage: build-and-push
+  image: acrmicroservices1691715dev.azurecr.io/java21-docker-azcli:latest
+  services:
+    - name: docker:dind
+  before_script:
+    - echo "$ARM_CLIENT_SECRET" | docker login $AZURE_REGISTRY_NAME -u "$ARM_CLIENT_ID" --password-stdin
+    - chmod +x ./mvnw
+  script:
+    - >
+      ./mvnw ${MAVEN_CLI_OPTS} clean package -Dnative 
+      -T 1C
+      -Dquarkus.native.container-build=true 
+      -Dquarkus.container-image.build=true 
+      -Dquarkus.container-image.push=true 
+      -Dquarkus.container-image.registry=${AZURE_REGISTRY_NAME}
+      -Dquarkus.container-image.tag=${CI_COMMIT_SHA}
+      -Dquarkus.container-image.group=${CI_PROJECT_NAMESPACE}
+      -Dquarkus.container-image.name=${CI_PROJECT_NAME}
+      -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21
+      -Dquarkus.docker.host=${DOCKER_HOST}
+      -DskipTests
+  artifacts:
+    name: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}"
+    paths:
+      - target/*-runner
+    expire_in: 1 week
+    reports:
+      junit: target/surefire-reports/TEST-*.xml
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      exists:
+        - pom.xml
+  resource_group: build
+  interruptible: true
