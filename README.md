@@ -1,98 +1,90 @@
-# orders
+# Orders Microservice
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+This microservice is responsible for managing orders in the e-commerce system. It provides APIs for creating, updating, retrieving, and deleting orders.
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+## Features
 
-## Running the application in dev mode
+- Create new orders
+- Update existing orders
+- Retrieve orders by ID, customer ID, status, date range, or payment method
+- Delete orders
+- Update order status
 
-You can run your application in dev mode that enables live coding using:
+## API Endpoints
 
-```shell script
-./mvnw quarkus:dev
+### Orders
+
+- `GET /api/orders` - Get all orders
+- `GET /api/orders/{id}` - Get order by ID
+- `POST /api/orders` - Create a new order
+- `PUT /api/orders/{id}` - Update an existing order
+- `DELETE /api/orders/{id}` - Delete an order
+- `GET /api/orders/customer/{customerId}` - Find orders by customer ID
+- `GET /api/orders/status/{status}` - Find orders by status
+- `GET /api/orders/date-range` - Find orders by date range
+- `GET /api/orders/payment-method/{paymentMethod}` - Find orders by payment method
+- `PATCH /api/orders/{id}/status/{status}` - Update order status
+
+## Running the Microservice
+
+### Prerequisites
+
+- JDK 21 or later
+- Maven 3.8.1 or later
+- PostgreSQL database
+
+### Configuration
+
+The microservice can be configured using environment variables:
+
+- `DB_USERNAME` - Database username (default: postgres)
+- `DB_PASSWORD` - Database password (default: postgres)
+- `DB_HOST` - Database host (default: localhost)
+- `DB_PORT` - Database port (default: 5432)
+- `DB_NAME` - Database name (default: orders)
+- `HTTP_PORT` - HTTP port (default: 8088)
+- `AUDIT_SERVICE_URL` - URL of the Audit service (default: http://localhost:8086)
+
+### Running Locally
+
+```bash
+mvn quarkus:dev
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+### Building and Running in Production
 
-## Packaging and running the application
-
-The application can be packaged using:
-
-```shell script
-./mvnw package
+```bash
+mvn package
+java -jar target/quarkus-app/quarkus-run.jar
 ```
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+## Integration with Other Microservices
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+This microservice integrates with:
 
-If you want to build an _über-jar_, execute the following command:
+- **Audit Service**: Logs all operations (create, read, update, delete) for auditing purposes.
+- **Catalog Service**: Uses product information from the catalog service when creating orders.
 
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
-```
+## Data Model
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
+### Order
 
-## Creating a native executable
+- `id` - Order ID
+- `customerId` - Customer ID
+- `orderDate` - Date and time when the order was created
+- `totalAmount` - Total amount of the order
+- `status` - Order status (CREATED, PAYMENT_PENDING, PAID, SHIPPED, DELIVERED, CANCELLED, RETURNED, REFUNDED)
+- `shippingAddress` - Shipping address
+- `billingAddress` - Billing address
+- `paymentMethod` - Payment method
+- `paymentId` - Payment ID
+- `items` - List of order items
 
-You can create a native executable using:
+### Order Item
 
-```shell script
-./mvnw package -Dnative
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
-
-```shell script
-./mvnw package -Dnative -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./target/orders-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
-
-## Related Guides
-
-- REST resources for Hibernate ORM with Panache ([guide](https://quarkus.io/guides/rest-data-panache)): Generate Jakarta REST resources for your Hibernate Panache entities and repositories
-- REST ([guide](https://quarkus.io/guides/rest)): A Jakarta REST implementation utilizing build time processing and Vert.x. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it.
-- Hibernate ORM ([guide](https://quarkus.io/guides/hibernate-orm)): Define your persistent model with Hibernate ORM and Jakarta Persistence
-- Micrometer Registry Prometheus ([guide](https://quarkus.io/guides/micrometer)): Enable Prometheus support for Micrometer
-- Hibernate Validator ([guide](https://quarkus.io/guides/validation)): Validate object properties (field, getter) and method parameters for your beans (REST, CDI, Jakarta Persistence)
-- SmallRye OpenAPI ([guide](https://quarkus.io/guides/openapi-swaggerui)): Document your REST APIs with OpenAPI - comes with Swagger UI
-- Hibernate ORM with Panache ([guide](https://quarkus.io/guides/hibernate-orm-panache)): Simplify your persistence code for Hibernate ORM via the active record or the repository pattern
-- Hibernate Search ORM + Elasticsearch ([guide](https://quarkus.io/guides/hibernate-search-orm-elasticsearch)): Automatically index your Hibernate entities in Elasticsearch
-- SmallRye Health ([guide](https://quarkus.io/guides/smallrye-health)): Monitor service health
-- Kubernetes ([guide](https://quarkus.io/guides/kubernetes)): Generate Kubernetes resources from annotations
-- JDBC Driver - PostgreSQL ([guide](https://quarkus.io/guides/datasource)): Connect to the PostgreSQL database via JDBC
-
-## Provided Code
-
-### Hibernate ORM
-
-Create your first JPA entity
-
-[Related guide section...](https://quarkus.io/guides/hibernate-orm)
-
-[Related Hibernate with Panache section...](https://quarkus.io/guides/hibernate-orm-panache)
-
-
-### REST Data with Panache
-
-Generating Jakarta REST resources with Panache
-
-[Related guide section...](https://quarkus.io/guides/rest-data-panache)
-
-
-### REST
-
-Easily start your REST Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
-
-### SmallRye Health
-
-Monitor your application's health using SmallRye Health
-
-[Related guide section...](https://quarkus.io/guides/smallrye-health)
+- `id` - Order item ID
+- `order` - Order to which this item belongs
+- `productId` - Product ID
+- `productName` - Product name
+- `price` - Price of the product
+- `quantity` - Quantity of the product
