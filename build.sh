@@ -1,12 +1,13 @@
 #!/bin/bash
+# build.sh for individual services (audit, catalog, orders)
 
-AZURE_REGISTRY_NAME="acrmicroservices1691716dev.azurecr.io"
-ARM_CLIENT_ID="88376f43-c3ee-4be1-bd05-20c20128b666"
-ARM_CLIENT_SECRET="YgW8Q~c1koEgr-cvHgSnkCieYtYA2Pr~MFB6dbDu"
-
-CI_COMMIT_SHA="test"
-CI_PROJECT_NAME="audit"
-CI_PROJECT_NAMESPACE="microservices1691716"
+# Use environment variables passed from main script or set defaults if not provided
+AZURE_REGISTRY_NAME=${AZURE_REGISTRY_NAME:-""}
+ARM_CLIENT_ID=${ARM_CLIENT_ID:-""}
+ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET:-""}
+CI_COMMIT_SHA=${CI_COMMIT_SHA:-"test"}
+CI_PROJECT_NAME=${CI_PROJECT_NAME:-""}
+CI_PROJECT_NAMESPACE=${CI_PROJECT_NAMESPACE:-"microservices1691717"}
 
 # Check if AZURE_REGISTRY_NAME is set
 if [ -z "$AZURE_REGISTRY_NAME" ]; then
@@ -15,17 +16,21 @@ if [ -z "$AZURE_REGISTRY_NAME" ]; then
   exit 1
 fi
 
-# Docker login if credentials are provided
-if [ ! -z "$ARM_CLIENT_ID" ] && [ ! -z "$ARM_CLIENT_SECRET" ]; then
-  echo "===== Logging in to Container Registry ====="
-  echo "$ARM_CLIENT_SECRET" | docker login $AZURE_REGISTRY_NAME -u "$ARM_CLIENT_ID" --password-stdin
-  if [ $? -ne 0 ]; then
-    echo "Error: Failed to log in to Container Registry"
-    exit 1
+# Skip login if already performed in the main script
+if [ -z "$MAIN_SCRIPT_LOGIN" ]; then
+  # Docker login if credentials are provided
+  if [ ! -z "$ARM_CLIENT_ID" ] && [ ! -z "$ARM_CLIENT_SECRET" ]; then
+    echo "===== Logging in to Container Registry ====="
+    echo "$ARM_CLIENT_SECRET" | docker login $AZURE_REGISTRY_NAME -u "$ARM_CLIENT_ID" --password-stdin
+    if [ $? -ne 0 ]; then
+      echo "Error: Failed to log in to Container Registry"
+      exit 1
+    fi
+  else
+    echo "Warning: ARM_CLIENT_ID or ARM_CLIENT_SECRET not set. You may need to log in to ACR manually."
   fi
-else
-  echo "Warning: ARM_CLIENT_ID or ARM_CLIENT_SECRET not set. You may need to log in to ACR manually."
 fi
+
 
 
 MAVEN_CLI_OPTS="--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true"
