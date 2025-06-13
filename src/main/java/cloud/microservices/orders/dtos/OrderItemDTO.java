@@ -1,17 +1,33 @@
 package cloud.microservices.orders.dtos;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
  * Data Transfer Object for OrderItem entity.
  */
-public class OrderItemDTO {
+@JsonSerialize
+@JsonAutoDetect(fieldVisibility = Visibility.ANY, getterVisibility = Visibility.ANY, setterVisibility = Visibility.ANY)
+public class OrderItemDTO implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    @JsonProperty("id")
     private Long id;
+    @JsonProperty("productId")
     private Long productId;
+    @JsonProperty("productName")
     private String productName;
+    @JsonProperty("price")
     private BigDecimal price;
+    @JsonProperty("quantity")
     private Integer quantity;
+    @JsonProperty("subtotal")
     private BigDecimal subtotal;
 
     /**

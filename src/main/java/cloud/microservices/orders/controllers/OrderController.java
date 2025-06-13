@@ -5,7 +5,6 @@ import cloud.microservices.orders.dtos.OrderDTO;
 import cloud.microservices.orders.dtos.OrderUpdateDTO;
 import cloud.microservices.orders.entities.OrderStatus;
 import cloud.microservices.orders.services.OrderService;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -17,6 +16,8 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.time.LocalDateTime;
@@ -30,6 +31,8 @@ import java.util.List;
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Order", description = "Order operations")
 public class OrderController {
+
+    private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
 
     /**
      * The Order service.
@@ -51,8 +54,21 @@ public class OrderController {
     @APIResponse(responseCode = "401", description = "Unauthorized")
     @APIResponse(responseCode = "403", description = "Forbidden")
     public Response getAllOrders() {
-        List<OrderDTO> orders = orderService.getAllOrders();
-        return Response.ok(orders).build();
+        logger.info("Getting all orders");
+
+        try {
+            List<OrderDTO> orders = orderService.getAllOrders();
+            logger.info("Retrieved {} orders", orders.size());
+
+            return Response.ok()
+                    .entity(orders)
+                    .header("Content-Type", MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8")
+                    .build();
+        } catch (Exception e) {
+            logger.error("Error retrieving all orders", e);
+            throw e;
+        }
     }
 
     /**
@@ -72,8 +88,24 @@ public class OrderController {
     @APIResponse(responseCode = "401", description = "Unauthorized")
     @APIResponse(responseCode = "403", description = "Forbidden")
     public Response getOrderById(@PathParam("id") Long id) {
-        OrderDTO order = orderService.getOrderById(id);
-        return Response.ok(order).build();
+        logger.info("Getting order by ID: {}", id);
+
+        try {
+            OrderDTO order = orderService.getOrderById(id);
+            logger.info("Retrieved order: {}, customer: {}", id, order.getCustomerId());
+
+            return Response.ok()
+                    .entity(order)
+                    .header("Content-Type", MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8")
+                    .build();
+        } catch (NotFoundException e) {
+            logger.warn("Order not found with ID: {}", id);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error retrieving order with ID: {}", id, e);
+            throw e;
+        }
     }
 
     /**
@@ -92,10 +124,24 @@ public class OrderController {
     @APIResponse(responseCode = "401", description = "Unauthorized")
     @APIResponse(responseCode = "403", description = "Forbidden")
     public Response createOrder(@Valid OrderCreateDTO orderCreateDTO) {
-        OrderDTO createdOrder = orderService.createOrder(orderCreateDTO);
-        return Response.created(URI.create("/api/orders/" + createdOrder.getId()))
-                .entity(createdOrder)
-                .build();
+        logger.info("Creating new order for customer: {}", orderCreateDTO.getCustomerId());
+        logger.debug("Order details: items count={}, shipping address={}",
+                orderCreateDTO.getItems() != null ? orderCreateDTO.getItems().size() : 0,
+                orderCreateDTO.getShippingAddress());
+
+        try {
+            OrderDTO createdOrder = orderService.createOrder(orderCreateDTO);
+            logger.info("Order created successfully with ID: {}", createdOrder.getId());
+
+            return Response.created(URI.create("/api/orders/" + createdOrder.getId()))
+                    .entity(createdOrder)
+                    .header("Content-Type", MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8")
+                    .build();
+        } catch (Exception e) {
+            logger.error("Error creating order for customer: {}", orderCreateDTO.getCustomerId(), e);
+            throw e;
+        }
     }
 
     /**
@@ -117,8 +163,26 @@ public class OrderController {
     @APIResponse(responseCode = "401", description = "Unauthorized")
     @APIResponse(responseCode = "403", description = "Forbidden")
     public Response updateOrder(@PathParam("id") Long id, @Valid OrderUpdateDTO orderUpdateDTO) {
-        OrderDTO updatedOrder = orderService.updateOrder(id, orderUpdateDTO);
-        return Response.ok(updatedOrder).build();
+        logger.info("Updating order with ID: {}", id);
+        logger.debug("Update details: status={}, shipping address={}",
+                orderUpdateDTO.getStatus(), orderUpdateDTO.getShippingAddress());
+
+        try {
+            OrderDTO updatedOrder = orderService.updateOrder(id, orderUpdateDTO);
+            logger.info("Order updated successfully: ID={}, status={}", id, updatedOrder.getStatus());
+
+            return Response.ok()
+                    .entity(updatedOrder)
+                    .header("Content-Type", MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8")
+                    .build();
+        } catch (NotFoundException e) {
+            logger.warn("Order not found for update with ID: {}", id);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error updating order with ID: {}", id, e);
+            throw e;
+        }
     }
 
     /**
@@ -136,8 +200,20 @@ public class OrderController {
     @APIResponse(responseCode = "401", description = "Unauthorized")
     @APIResponse(responseCode = "403", description = "Forbidden")
     public Response deleteOrder(@PathParam("id") Long id) {
-        orderService.deleteOrder(id);
-        return Response.noContent().build();
+        logger.info("Deleting order with ID: {}", id);
+
+        try {
+            orderService.deleteOrder(id);
+            logger.info("Order deleted successfully: ID={}", id);
+
+            return Response.noContent().build();
+        } catch (NotFoundException e) {
+            logger.warn("Order not found for deletion with ID: {}", id);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error deleting order with ID: {}", id, e);
+            throw e;
+        }
     }
 
     /**
@@ -156,8 +232,21 @@ public class OrderController {
     @APIResponse(responseCode = "401", description = "Unauthorized")
     @APIResponse(responseCode = "403", description = "Forbidden")
     public Response findByCustomerId(@PathParam("customerId") String customerId) {
-        List<OrderDTO> orders = orderService.findByCustomerId(customerId);
-        return Response.ok(orders).build();
+        logger.info("Finding orders for customer ID: {}", customerId);
+
+        try {
+            List<OrderDTO> orders = orderService.findByCustomerId(customerId);
+            logger.info("Found {} orders for customer ID: {}", orders.size(), customerId);
+
+            return Response.ok()
+                    .entity(orders)
+                    .header("Content-Type", MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8")
+                    .build();
+        } catch (Exception e) {
+            logger.error("Error finding orders for customer ID: {}", customerId, e);
+            throw e;
+        }
     }
 
     /**
@@ -176,8 +265,21 @@ public class OrderController {
     @APIResponse(responseCode = "401", description = "Unauthorized")
     @APIResponse(responseCode = "403", description = "Forbidden")
     public Response findByStatus(@PathParam("status") OrderStatus status) {
-        List<OrderDTO> orders = orderService.findByStatus(status);
-        return Response.ok(orders).build();
+        logger.info("Finding orders with status: {}", status);
+
+        try {
+            List<OrderDTO> orders = orderService.findByStatus(status);
+            logger.info("Found {} orders with status: {}", orders.size(), status);
+
+            return Response.ok()
+                    .entity(orders)
+                    .header("Content-Type", MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8")
+                    .build();
+        } catch (Exception e) {
+            logger.error("Error finding orders with status: {}", status, e);
+            throw e;
+        }
     }
 
     /**
@@ -197,9 +299,29 @@ public class OrderController {
     @APIResponse(responseCode = "401", description = "Unauthorized")
     @APIResponse(responseCode = "403", description = "Forbidden")
     public Response findByDateRange(@QueryParam("startDate") LocalDateTime startDate,
-                                   @QueryParam("endDate") LocalDateTime endDate) {
-        List<OrderDTO> orders = orderService.findByOrderDateBetween(startDate, endDate);
-        return Response.ok(orders).build();
+                                    @QueryParam("endDate") LocalDateTime endDate) {
+        logger.info("Finding orders between dates: {} and {}", startDate, endDate);
+
+        if (startDate == null || endDate == null) {
+            logger.warn("Missing required date parameters: startDate={}, endDate={}", startDate, endDate);
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Both startDate and endDate parameters are required")
+                    .build();
+        }
+
+        try {
+            List<OrderDTO> orders = orderService.findByOrderDateBetween(startDate, endDate);
+            logger.info("Found {} orders between {} and {}", orders.size(), startDate, endDate);
+
+            return Response.ok()
+                    .entity(orders)
+                    .header("Content-Type", MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8")
+                    .build();
+        } catch (Exception e) {
+            logger.error("Error finding orders between dates: {} and {}", startDate, endDate, e);
+            throw e;
+        }
     }
 
     /**
@@ -218,8 +340,21 @@ public class OrderController {
     @APIResponse(responseCode = "401", description = "Unauthorized")
     @APIResponse(responseCode = "403", description = "Forbidden")
     public Response findByPaymentMethod(@PathParam("paymentMethod") String paymentMethod) {
-        List<OrderDTO> orders = orderService.findByPaymentMethod(paymentMethod);
-        return Response.ok(orders).build();
+        logger.info("Finding orders with payment method: {}", paymentMethod);
+
+        try {
+            List<OrderDTO> orders = orderService.findByPaymentMethod(paymentMethod);
+            logger.info("Found {} orders with payment method: {}", orders.size(), paymentMethod);
+
+            return Response.ok()
+                    .entity(orders)
+                    .header("Content-Type", MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8")
+                    .build();
+        } catch (Exception e) {
+            logger.error("Error finding orders with payment method: {}", paymentMethod, e);
+            throw e;
+        }
     }
 
     /**
@@ -240,7 +375,23 @@ public class OrderController {
     @APIResponse(responseCode = "401", description = "Unauthorized")
     @APIResponse(responseCode = "403", description = "Forbidden")
     public Response updateOrderStatus(@PathParam("id") Long id, @PathParam("status") OrderStatus status) {
-        OrderDTO updatedOrder = orderService.updateOrderStatus(id, status);
-        return Response.ok(updatedOrder).build();
+        logger.info("Updating status of order ID: {} to {}", id, status);
+
+        try {
+            OrderDTO updatedOrder = orderService.updateOrderStatus(id, status);
+            logger.info("Order status updated successfully: ID={}, new status={}", id, status);
+
+            return Response.ok()
+                    .entity(updatedOrder)
+                    .header("Content-Type", MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8")
+                    .build();
+        } catch (NotFoundException e) {
+            logger.warn("Order not found for status update with ID: {}", id);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error updating status of order with ID: {} to {}", id, status, e);
+            throw e;
+        }
     }
 }

@@ -1,7 +1,12 @@
 package cloud.microservices.orders.dtos;
 
 import cloud.microservices.orders.entities.OrderStatus;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,16 +15,30 @@ import java.util.Objects;
 /**
  * Data Transfer Object for Order entity.
  */
-public class OrderDTO {
+@JsonSerialize
+@JsonAutoDetect(fieldVisibility = Visibility.ANY, getterVisibility = Visibility.ANY, setterVisibility = Visibility.ANY)
+public class OrderDTO implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    @JsonProperty("id")
     private Long id;
+    @JsonProperty("customerId")
     private String customerId;
+    @JsonProperty("orderDate")
     private LocalDateTime orderDate;
+    @JsonProperty("totalAmount")
     private BigDecimal totalAmount;
+    @JsonProperty("status")
     private OrderStatus status;
+    @JsonProperty("shippingAddress")
     private String shippingAddress;
+    @JsonProperty("billingAddress")
     private String billingAddress;
+    @JsonProperty("paymentMethod")
     private String paymentMethod;
+    @JsonProperty("paymentId")
     private String paymentId;
+    @JsonProperty("items")
     private List<OrderItemDTO> items;
 
     /**

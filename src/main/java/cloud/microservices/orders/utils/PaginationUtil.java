@@ -26,12 +26,12 @@ public class PaginationUtil {
     public static int[] validatePaginationParams(Integer page, Integer size) {
         int validPage = (page != null && page >= 0) ? page : 0;
         int validSize = (size != null && size > 0) ? Math.min(size, MAX_PAGE_SIZE) : DEFAULT_PAGE_SIZE;
-        
+
         return new int[] { validPage, validSize };
     }
 
     /**
-     * Creates a paginated response with appropriate headers.
+     * Creates a paginated response with appropriate headers and a structured response body.
      * 
      * @param items The list of items for the current page
      * @param totalCount The total count of items across all pages
@@ -39,7 +39,7 @@ public class PaginationUtil {
      * @param size The page size
      * @param uriInfo The URI info for building pagination links
      * @param <T> The type of items in the list
-     * @return A Response object with pagination headers
+     * @return A Response object with pagination headers and structured response body
      */
     public static <T> Response createPaginatedResponse(
             List<T> items, 
@@ -47,36 +47,44 @@ public class PaginationUtil {
             int page, 
             int size, 
             UriInfo uriInfo) {
-        
-        Response.ResponseBuilder responseBuilder = Response.ok(items);
-        
-        // Add X-Total-Count header
+
+        // Create a PageResponse object that includes both the data and pagination metadata
+        PageResponse<T> pageResponse = PageResponse.of(items, totalCount, page, size);
+
+        // Ensure proper JSON serialization by explicitly setting content type and encoding
+        // Use entity() method to ensure the object is properly serialized
+        Response.ResponseBuilder responseBuilder = Response.ok()
+                .entity(pageResponse)
+                .header("Content-Type", jakarta.ws.rs.core.MediaType.APPLICATION_JSON)
+                .encoding("UTF-8");
+
+        // Add X-Total-Count header for backward compatibility
         responseBuilder.header(HEADER_X_TOTAL_COUNT, totalCount);
-        
-        // Add Link header with prev, next, first, last links
+
+        // Add Link header with prev, next, first, last links for backward compatibility
         String baseUrl = uriInfo.getRequestUriBuilder().replaceQueryParam("page", "").replaceQueryParam("size", "").build().toString();
         int lastPage = (int) Math.ceil((double) totalCount / size) - 1;
-        
+
         StringBuilder linkHeader = new StringBuilder();
-        
+
         // First page link
         linkHeader.append(String.format("<%s?page=0&size=%d>; rel=\"first\"", baseUrl, size));
-        
+
         // Previous page link (if not on first page)
         if (page > 0) {
             linkHeader.append(String.format(", <%s?page=%d&size=%d>; rel=\"prev\"", baseUrl, page - 1, size));
         }
-        
+
         // Next page link (if not on last page)
         if (page < lastPage) {
             linkHeader.append(String.format(", <%s?page=%d&size=%d>; rel=\"next\"", baseUrl, page + 1, size));
         }
-        
+
         // Last page link
         linkHeader.append(String.format(", <%s?page=%d&size=%d>; rel=\"last\"", baseUrl, lastPage, size));
-        
+
         responseBuilder.header(HEADER_LINK, linkHeader.toString());
-        
+
         return responseBuilder.build();
     }
 }
