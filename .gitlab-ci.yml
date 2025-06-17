@@ -26,7 +26,7 @@ include:
 
 build-and-push-native:
   stage: build-and-push
-  image: acrmicroservices1691715dev.azurecr.io/java21-docker-azcli:latest
+  image: ${AZURE_REGISTRY_NAME}/java21-docker-azcli:latest
   services:
     - name: docker:dind
   before_script:
