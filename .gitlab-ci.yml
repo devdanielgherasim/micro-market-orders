@@ -41,7 +41,7 @@ build-and-push-native:
       -Dquarkus.container-image.push=true 
       -Dquarkus.container-image.registry=${CONTAINER_REGISTRY_NAME}
       -Dquarkus.container-image.tag=${CI_COMMIT_SHA}
-      -Dquarkus.container-image.group=${CI_PROJECT_NAMESPACE}
+      -Dquarkus.container-image.group=${PROJECT_NAMESPACE}
       -Dquarkus.container-image.name=${CI_PROJECT_NAME}
       -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21
       -Dquarkus.docker.host=${DOCKER_HOST}
