@@ -1,6 +1,5 @@
 package cloud.microservices.orders.providers;
 
-import cloud.microservices.orders.dtos.OrderDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Produces;
@@ -16,30 +15,29 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 /**
- * Custom MessageBodyWriter for OrderDTO objects.
- * Ensures proper JSON serialization of OrderDTO objects.
+ * Generic MessageBodyWriter for JSON serialization.
+ * This class replaces multiple type-specific MessageBodyWriters with a single generic implementation.
+ * It can serialize any object to JSON using Jackson's ObjectMapper.
  */
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
-public class OrderDTOMessageBodyWriter implements MessageBodyWriter<OrderDTO> {
+public class GenericJsonMessageBodyWriter implements MessageBodyWriter<Object> {
 
     @Inject
-    ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
     @Override
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return OrderDTO.class.isAssignableFrom(type);
+        return MediaType.APPLICATION_JSON_TYPE.isCompatible(mediaType);
     }
 
     @Override
-    public void writeTo(OrderDTO orderDTO, Class<?> type, Type genericType, Annotation[] annotations,
+    public void writeTo(Object object, Class<?> type, Type genericType, Annotation[] annotations,
                         MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
             throws IOException, WebApplicationException {
-        
-        // Ensure content type is set to application/json
+
         httpHeaders.putSingle("Content-Type", MediaType.APPLICATION_JSON);
-        
-        // Use the injected ObjectMapper to serialize the OrderDTO object
-        objectMapper.writeValue(entityStream, orderDTO);
+
+        objectMapper.writeValue(entityStream, object);
     }
 }

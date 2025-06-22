@@ -14,7 +14,6 @@ import jakarta.ws.rs.NotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Service class for Order entity providing business logic.
@@ -36,6 +35,7 @@ public class OrderService {
      *
      * @return list of all orders
      */
+    @Transactional
     public List<OrderDTO> getAllOrders() {
         return orderRepository.findAll().stream()
                 .map(orderMapper::toDTO)
@@ -49,13 +49,13 @@ public class OrderService {
      * @return the order DTO
      * @throws NotFoundException if order not found
      */
+    @Transactional
     public OrderDTO getOrderById(Long id) {
         Order order = orderRepository.findById(id);
         if (order == null) {
             throw new NotFoundException("Order with ID " + id + " not found");
         }
 
-        // Log the read operation
         auditService.logRead("Order", id.toString(), "Viewed order for customer: " + order.getCustomerId());
 
         return orderMapper.toDTO(order);
@@ -140,10 +140,11 @@ public class OrderService {
      * @param customerId the customer ID
      * @return list of orders for the customer
      */
+    @Transactional
     public List<OrderDTO> findByCustomerId(String customerId) {
         return orderRepository.findByCustomerId(customerId).stream()
                 .map(orderMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -152,10 +153,11 @@ public class OrderService {
      * @param status the order status
      * @return list of orders with the specified status
      */
+    @Transactional
     public List<OrderDTO> findByStatus(OrderStatus status) {
         return orderRepository.findByStatus(status).stream()
                 .map(orderMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -165,22 +167,11 @@ public class OrderService {
      * @param endDate   the end date
      * @return list of orders created between the specified dates
      */
+    @Transactional
     public List<OrderDTO> findByOrderDateBetween(LocalDateTime startDate, LocalDateTime endDate) {
         return orderRepository.findByOrderDateBetween(startDate, endDate).stream()
                 .map(orderMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Find orders by payment method.
-     *
-     * @param paymentMethod the payment method
-     * @return list of orders with the specified payment method
-     */
-    public List<OrderDTO> findByPaymentMethod(String paymentMethod) {
-        return orderRepository.findByPaymentMethod(paymentMethod).stream()
-                .map(orderMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

@@ -33,19 +33,7 @@ public class Order extends PanacheEntity {
     @Column(name = "status", nullable = false)
     private OrderStatus status;
 
-    @Column(name = "shipping_address")
-    private String shippingAddress;
-
-    @Column(name = "billing_address")
-    private String billingAddress;
-
-    @Column(name = "payment_method")
-    private String paymentMethod;
-
-    @Column(name = "payment_id")
-    private String paymentId;
-
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<OrderItem> items = new ArrayList<>();
 
     /**
@@ -58,16 +46,11 @@ public class Order extends PanacheEntity {
      * Constructor with all fields.
      */
     public Order(String customerId, LocalDateTime orderDate, BigDecimal totalAmount, 
-                OrderStatus status, String shippingAddress, String billingAddress, 
-                String paymentMethod, String paymentId, List<OrderItem> items) {
+                OrderStatus status, List<OrderItem> items) {
         this.customerId = customerId;
         this.orderDate = orderDate;
         this.totalAmount = totalAmount;
         this.status = status;
-        this.shippingAddress = shippingAddress;
-        this.billingAddress = billingAddress;
-        this.paymentMethod = paymentMethod;
-        this.paymentId = paymentId;
         this.items = items;
     }
 
@@ -101,38 +84,6 @@ public class Order extends PanacheEntity {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
-    }
-
-    public String getShippingAddress() {
-        return shippingAddress;
-    }
-
-    public void setShippingAddress(String shippingAddress) {
-        this.shippingAddress = shippingAddress;
-    }
-
-    public String getBillingAddress() {
-        return billingAddress;
-    }
-
-    public void setBillingAddress(String billingAddress) {
-        this.billingAddress = billingAddress;
-    }
-
-    public String getPaymentMethod() {
-        return paymentMethod;
-    }
-
-    public void setPaymentMethod(String paymentMethod) {
-        this.paymentMethod = paymentMethod;
-    }
-
-    public String getPaymentId() {
-        return paymentId;
-    }
-
-    public void setPaymentId(String paymentId) {
-        this.paymentId = paymentId;
     }
 
     public List<OrderItem> getItems() {
@@ -183,17 +134,12 @@ public class Order extends PanacheEntity {
                Objects.equals(customerId, order.customerId) &&
                Objects.equals(orderDate, order.orderDate) &&
                Objects.equals(totalAmount, order.totalAmount) &&
-               status == order.status &&
-               Objects.equals(shippingAddress, order.shippingAddress) &&
-               Objects.equals(billingAddress, order.billingAddress) &&
-               Objects.equals(paymentMethod, order.paymentMethod) &&
-               Objects.equals(paymentId, order.paymentId);
+               status == order.status;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, customerId, orderDate, totalAmount, status, 
-                           shippingAddress, billingAddress, paymentMethod, paymentId);
+        return Objects.hash(id, customerId, orderDate, totalAmount, status);
     }
 
     @Override
@@ -204,10 +150,6 @@ public class Order extends PanacheEntity {
                 ", orderDate=" + orderDate +
                 ", totalAmount=" + totalAmount +
                 ", status=" + status +
-                ", shippingAddress='" + shippingAddress + '\'' +
-                ", billingAddress='" + billingAddress + '\'' +
-                ", paymentMethod='" + paymentMethod + '\'' +
-                ", paymentId='" + paymentId + '\'' +
                 ", items=" + items +
                 '}';
     }

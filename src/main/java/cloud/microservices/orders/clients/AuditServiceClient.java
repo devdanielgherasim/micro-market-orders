@@ -3,13 +3,16 @@ package cloud.microservices.orders.clients;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 /**
  * REST client for the Audit Service.
+ * Uses Keycloak token propagation for authentication.
  */
-@Path("/api/audit-logs")
+@Path("/api/audit")
 @RegisterRestClient(configKey = "audit-service")
+@RegisterProvider(AuditServiceTokenRequestFilter.class)
 public interface AuditServiceClient {
 
     /**

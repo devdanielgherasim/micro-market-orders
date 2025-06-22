@@ -1,17 +1,30 @@
 package cloud.microservices.orders.clients;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
  * Request DTO for creating a new audit log entry.
  */
-public class AuditLogCreateRequest {
+public class AuditLogCreateRequest implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+    @jakarta.validation.constraints.NotNull(message = "Timestamp is required")
     private LocalDateTime timestamp;
+
+    @jakarta.validation.constraints.NotBlank(message = "Action is required")
     private String action;
+
+    @jakarta.validation.constraints.NotBlank(message = "Entity type is required")
     private String entityType;
+
     private String entityId;
-    private String user;
+
+    @jakarta.validation.constraints.NotBlank(message = "Username is required")
+    private String username;
+
     private String details;
     private String ipAddress;
     private String userAgent;
@@ -27,12 +40,12 @@ public class AuditLogCreateRequest {
      * Constructor with all fields.
      */
     public AuditLogCreateRequest(LocalDateTime timestamp, String action, String entityType, String entityId, 
-                                String user, String details, String ipAddress, String userAgent, Integer statusCode) {
+                                String username, String details, String ipAddress, String userAgent, Integer statusCode) {
         this.timestamp = timestamp;
         this.action = action;
         this.entityType = entityType;
         this.entityId = entityId;
-        this.user = user;
+        this.username = username;
         this.details = details;
         this.ipAddress = ipAddress;
         this.userAgent = userAgent;
@@ -45,18 +58,18 @@ public class AuditLogCreateRequest {
      * @param action     the action performed (CREATE, UPDATE, DELETE, READ)
      * @param entityType the type of entity (e.g., "Order")
      * @param entityId   the ID of the entity
-     * @param user       the user who performed the action
+     * @param username   the user who performed the action
      * @param details    additional details about the action
      * @return the audit log create request
      */
     public static AuditLogCreateRequest of(String action, String entityType, String entityId, 
-                                          String user, String details) {
+                                          String username, String details) {
         AuditLogCreateRequest request = new AuditLogCreateRequest();
         request.setTimestamp(LocalDateTime.now());
         request.setAction(action);
         request.setEntityType(entityType);
         request.setEntityId(entityId);
-        request.setUser(user);
+        request.setUsername(username);
         request.setDetails(details);
         return request;
     }
@@ -93,12 +106,12 @@ public class AuditLogCreateRequest {
         this.entityId = entityId;
     }
 
-    public String getUser() {
-        return user;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUser(String user) {
-        this.user = user;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getDetails() {
@@ -142,7 +155,7 @@ public class AuditLogCreateRequest {
                Objects.equals(action, that.action) &&
                Objects.equals(entityType, that.entityType) &&
                Objects.equals(entityId, that.entityId) &&
-               Objects.equals(user, that.user) &&
+               Objects.equals(username, that.username) &&
                Objects.equals(details, that.details) &&
                Objects.equals(ipAddress, that.ipAddress) &&
                Objects.equals(userAgent, that.userAgent) &&
@@ -151,7 +164,7 @@ public class AuditLogCreateRequest {
 
     @Override
     public int hashCode() {
-        return Objects.hash(timestamp, action, entityType, entityId, user, details, ipAddress, userAgent, statusCode);
+        return Objects.hash(timestamp, action, entityType, entityId, username, details, ipAddress, userAgent, statusCode);
     }
 
     @Override
@@ -161,7 +174,7 @@ public class AuditLogCreateRequest {
                 ", action='" + action + '\'' +
                 ", entityType='" + entityType + '\'' +
                 ", entityId='" + entityId + '\'' +
-                ", user='" + user + '\'' +
+                ", username='" + username + '\'' +
                 ", details='" + details + '\'' +
                 ", ipAddress='" + ipAddress + '\'' +
                 ", userAgent='" + userAgent + '\'' +

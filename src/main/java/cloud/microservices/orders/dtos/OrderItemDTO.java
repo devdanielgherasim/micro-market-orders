@@ -1,10 +1,15 @@
 package cloud.microservices.orders.dtos;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -15,18 +20,32 @@ import java.util.Objects;
 @JsonSerialize
 @JsonAutoDetect(fieldVisibility = Visibility.ANY, getterVisibility = Visibility.ANY, setterVisibility = Visibility.ANY)
 public class OrderItemDTO implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @JsonProperty("id")
     private Long id;
+
+    @NotNull(message = "Product ID is required")
     @JsonProperty("productId")
     private Long productId;
+
+    @NotBlank(message = "Product name is required")
     @JsonProperty("productName")
     private String productName;
+
+    @NotNull(message = "Price is required")
+    @PositiveOrZero(message = "Price must be zero or positive")
     @JsonProperty("price")
     private BigDecimal price;
+
+    @NotNull(message = "Quantity is required")
+    @Positive(message = "Quantity must be positive")
     @JsonProperty("quantity")
     private Integer quantity;
+
+    @NotNull(message = "Subtotal is required")
+    @PositiveOrZero(message = "Subtotal must be zero or positive")
     @JsonProperty("subtotal")
     private BigDecimal subtotal;
 
@@ -96,17 +115,27 @@ public class OrderItemDTO implements Serializable {
         this.subtotal = subtotal;
     }
 
+    /**
+     * Calculates and updates the subtotal based on price and quantity.
+     * This method ensures that subtotal = price * quantity.
+     */
+    public void calculateSubtotal() {
+        if (price != null && quantity != null) {
+            this.subtotal = price.multiply(new BigDecimal(quantity));
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         OrderItemDTO that = (OrderItemDTO) o;
         return Objects.equals(id, that.id) &&
-               Objects.equals(productId, that.productId) &&
-               Objects.equals(productName, that.productName) &&
-               Objects.equals(price, that.price) &&
-               Objects.equals(quantity, that.quantity) &&
-               Objects.equals(subtotal, that.subtotal);
+                Objects.equals(productId, that.productId) &&
+                Objects.equals(productName, that.productName) &&
+                Objects.equals(price, that.price) &&
+                Objects.equals(quantity, that.quantity) &&
+                Objects.equals(subtotal, that.subtotal);
     }
 
     @Override

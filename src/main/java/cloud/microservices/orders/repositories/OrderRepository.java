@@ -44,14 +44,4 @@ public class OrderRepository implements PanacheRepository<Order> {
     public List<Order> findByOrderDateBetween(LocalDateTime startDate, LocalDateTime endDate) {
         return list("orderDate >= ?1 AND orderDate <= ?2", startDate, endDate);
     }
-
-    /**
-     * Find orders by payment method.
-     *
-     * @param paymentMethod the payment method to search for
-     * @return list of orders with the specified payment method
-     */
-    public List<Order> findByPaymentMethod(String paymentMethod) {
-        return list("paymentMethod", paymentMethod);
-    }
 }

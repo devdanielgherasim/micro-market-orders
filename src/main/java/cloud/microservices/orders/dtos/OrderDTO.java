@@ -1,11 +1,17 @@
 package cloud.microservices.orders.dtos;
 
 import cloud.microservices.orders.entities.OrderStatus;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.PositiveOrZero;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,26 +24,31 @@ import java.util.Objects;
 @JsonSerialize
 @JsonAutoDetect(fieldVisibility = Visibility.ANY, getterVisibility = Visibility.ANY, setterVisibility = Visibility.ANY)
 public class OrderDTO implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @JsonProperty("id")
     private Long id;
+
+    @NotBlank(message = "Customer ID is required")
     @JsonProperty("customerId")
     private String customerId;
+
+    @NotNull(message = "Order date is required")
+    @PastOrPresent(message = "Order date cannot be in the future")
     @JsonProperty("orderDate")
     private LocalDateTime orderDate;
+
+    @NotNull(message = "Total amount is required")
+    @PositiveOrZero(message = "Total amount must be zero or positive")
     @JsonProperty("totalAmount")
     private BigDecimal totalAmount;
+
+    @NotNull(message = "Status is required")
     @JsonProperty("status")
     private OrderStatus status;
-    @JsonProperty("shippingAddress")
-    private String shippingAddress;
-    @JsonProperty("billingAddress")
-    private String billingAddress;
-    @JsonProperty("paymentMethod")
-    private String paymentMethod;
-    @JsonProperty("paymentId")
-    private String paymentId;
+
+    @Valid
     @JsonProperty("items")
     private List<OrderItemDTO> items;
 
@@ -50,18 +61,13 @@ public class OrderDTO implements Serializable {
     /**
      * Constructor with all fields.
      */
-    public OrderDTO(Long id, String customerId, LocalDateTime orderDate, BigDecimal totalAmount, 
-                   OrderStatus status, String shippingAddress, String billingAddress, 
-                   String paymentMethod, String paymentId, List<OrderItemDTO> items) {
+    public OrderDTO(Long id, String customerId, LocalDateTime orderDate, BigDecimal totalAmount,
+                    OrderStatus status, List<OrderItemDTO> items) {
         this.id = id;
         this.customerId = customerId;
         this.orderDate = orderDate;
         this.totalAmount = totalAmount;
         this.status = status;
-        this.shippingAddress = shippingAddress;
-        this.billingAddress = billingAddress;
-        this.paymentMethod = paymentMethod;
-        this.paymentId = paymentId;
         this.items = items;
     }
 
@@ -105,38 +111,6 @@ public class OrderDTO implements Serializable {
         this.status = status;
     }
 
-    public String getShippingAddress() {
-        return shippingAddress;
-    }
-
-    public void setShippingAddress(String shippingAddress) {
-        this.shippingAddress = shippingAddress;
-    }
-
-    public String getBillingAddress() {
-        return billingAddress;
-    }
-
-    public void setBillingAddress(String billingAddress) {
-        this.billingAddress = billingAddress;
-    }
-
-    public String getPaymentMethod() {
-        return paymentMethod;
-    }
-
-    public void setPaymentMethod(String paymentMethod) {
-        this.paymentMethod = paymentMethod;
-    }
-
-    public String getPaymentId() {
-        return paymentId;
-    }
-
-    public void setPaymentId(String paymentId) {
-        this.paymentId = paymentId;
-    }
-
     public List<OrderItemDTO> getItems() {
         return items;
     }
@@ -151,21 +125,16 @@ public class OrderDTO implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         OrderDTO orderDTO = (OrderDTO) o;
         return Objects.equals(id, orderDTO.id) &&
-               Objects.equals(customerId, orderDTO.customerId) &&
-               Objects.equals(orderDate, orderDTO.orderDate) &&
-               Objects.equals(totalAmount, orderDTO.totalAmount) &&
-               status == orderDTO.status &&
-               Objects.equals(shippingAddress, orderDTO.shippingAddress) &&
-               Objects.equals(billingAddress, orderDTO.billingAddress) &&
-               Objects.equals(paymentMethod, orderDTO.paymentMethod) &&
-               Objects.equals(paymentId, orderDTO.paymentId) &&
-               Objects.equals(items, orderDTO.items);
+                Objects.equals(customerId, orderDTO.customerId) &&
+                Objects.equals(orderDate, orderDTO.orderDate) &&
+                Objects.equals(totalAmount, orderDTO.totalAmount) &&
+                status == orderDTO.status &&
+                Objects.equals(items, orderDTO.items);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, customerId, orderDate, totalAmount, status, 
-                           shippingAddress, billingAddress, paymentMethod, paymentId, items);
+        return Objects.hash(id, customerId, orderDate, totalAmount, status, items);
     }
 
     @Override
@@ -176,10 +145,6 @@ public class OrderDTO implements Serializable {
                 ", orderDate=" + orderDate +
                 ", totalAmount=" + totalAmount +
                 ", status=" + status +
-                ", shippingAddress='" + shippingAddress + '\'' +
-                ", billingAddress='" + billingAddress + '\'' +
-                ", paymentMethod='" + paymentMethod + '\'' +
-                ", paymentId='" + paymentId + '\'' +
                 ", items=" + items +
                 '}';
     }

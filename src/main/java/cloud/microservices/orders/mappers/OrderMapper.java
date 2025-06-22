@@ -1,21 +1,27 @@
 package cloud.microservices.orders.mappers;
 
+import cloud.microservices.orders.clients.ProductClient;
 import cloud.microservices.orders.dtos.*;
 import cloud.microservices.orders.entities.Order;
 import cloud.microservices.orders.entities.OrderItem;
 import cloud.microservices.orders.entities.OrderStatus;
+import cloud.microservices.orders.services.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Mapper class for converting between Order entity and DTOs.
  */
 @ApplicationScoped
 public class OrderMapper {
+
+    @Inject
+    ProductService productService;
 
     /**
      * Map Order entity to OrderDTO.
@@ -27,25 +33,21 @@ public class OrderMapper {
         if (order == null) {
             return null;
         }
-        
+
         List<OrderItemDTO> itemDTOs = order.getItems().stream()
                 .map(this::toOrderItemDTO)
-                .collect(Collectors.toList());
-        
+                .toList();
+
         return new OrderDTO(
                 order.id,
                 order.getCustomerId(),
                 order.getOrderDate(),
                 order.getTotalAmount(),
                 order.getStatus(),
-                order.getShippingAddress(),
-                order.getBillingAddress(),
-                order.getPaymentMethod(),
-                order.getPaymentId(),
                 itemDTOs
         );
     }
-    
+
     /**
      * Map OrderItem entity to OrderItemDTO.
      *
@@ -56,15 +58,40 @@ public class OrderMapper {
         if (orderItem == null) {
             return null;
         }
-        
-        return new OrderItemDTO(
+
+        String productName = formatProductName(orderItem.getProductName());
+
+        OrderItemDTO dto = new OrderItemDTO(
                 orderItem.id,
                 orderItem.getProductId(),
-                orderItem.getProductName(),
+                productName,
                 orderItem.getPrice(),
                 orderItem.getQuantity(),
-                orderItem.getSubtotal()
+                null // We'll calculate this below
         );
+
+        // Ensure subtotal is correctly calculated
+        dto.calculateSubtotal();
+
+        return dto;
+    }
+
+    /**
+     * Format product name to handle default or empty values.
+     *
+     * @param productName the product name to format
+     * @return formatted product name or product ID reference if default value
+     */
+    private String formatProductName(String productName) {
+        if (productName == null || productName.isEmpty()) {
+            return "Product";
+        }
+
+        if ("Unknown Product".equals(productName)) {
+            return "Product";
+        }
+
+        return productName;
     }
 
     /**
@@ -77,30 +104,25 @@ public class OrderMapper {
         if (dto == null) {
             return null;
         }
-        
+
         Order order = new Order();
         order.setCustomerId(dto.getCustomerId());
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(OrderStatus.CREATED);
-        order.setShippingAddress(dto.getShippingAddress());
-        order.setBillingAddress(dto.getBillingAddress() != null ? dto.getBillingAddress() : dto.getShippingAddress());
-        order.setPaymentMethod(dto.getPaymentMethod());
-        order.setPaymentId(dto.getPaymentId());
-        
-        // Create order items
-        List<OrderItem> items = new ArrayList<>();
+
         if (dto.getItems() != null) {
             for (OrderItemCreateDTO itemDTO : dto.getItems()) {
                 OrderItem item = fromOrderItemCreateDTO(itemDTO);
                 order.addItem(item);
             }
         }
-        
+
         return order;
     }
-    
+
     /**
      * Map OrderItemCreateDTO to OrderItem entity.
+     * Retrieves product information (name and price) from the catalog service based on the product ID.
      *
      * @param dto the order item create DTO
      * @return the order item entity
@@ -109,13 +131,18 @@ public class OrderMapper {
         if (dto == null) {
             return null;
         }
-        
+
         OrderItem item = new OrderItem();
         item.setProductId(dto.getProductId());
-        item.setProductName(dto.getProductName());
-        item.setPrice(dto.getPrice());
+
+        ProductClient.ProductInfo productInfo = productService.getProductInfo(dto.getProductId());
+        String productName = productInfo.getName();
+        BigDecimal price = productInfo.getPrice();
+
+        item.setProductName(productName);
+        item.setPrice(price);
         item.setQuantity(dto.getQuantity());
-        
+
         return item;
     }
 
@@ -129,40 +156,21 @@ public class OrderMapper {
         if (dto == null || order == null) {
             return;
         }
-        
+
         if (dto.getCustomerId() != null) {
             order.setCustomerId(dto.getCustomerId());
         }
-        
+
         if (dto.getStatus() != null) {
             order.setStatus(dto.getStatus());
         }
-        
-        if (dto.getShippingAddress() != null) {
-            order.setShippingAddress(dto.getShippingAddress());
-        }
-        
-        if (dto.getBillingAddress() != null) {
-            order.setBillingAddress(dto.getBillingAddress());
-        }
-        
-        if (dto.getPaymentMethod() != null) {
-            order.setPaymentMethod(dto.getPaymentMethod());
-        }
-        
-        if (dto.getPaymentId() != null) {
-            order.setPaymentId(dto.getPaymentId());
-        }
-        
-        // Update items if provided
+
         if (dto.getItems() != null && !dto.getItems().isEmpty()) {
-            // Remove existing items
             List<OrderItem> existingItems = new ArrayList<>(order.getItems());
             for (OrderItem item : existingItems) {
                 order.removeItem(item);
             }
-            
-            // Add new items
+
             for (OrderItemCreateDTO itemDTO : dto.getItems()) {
                 OrderItem item = fromOrderItemCreateDTO(itemDTO);
                 order.addItem(item);

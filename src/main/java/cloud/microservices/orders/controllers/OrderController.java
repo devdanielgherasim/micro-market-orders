@@ -5,7 +5,6 @@ import cloud.microservices.orders.dtos.OrderDTO;
 import cloud.microservices.orders.dtos.OrderUpdateDTO;
 import cloud.microservices.orders.entities.OrderStatus;
 import cloud.microservices.orders.services.OrderService;
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -46,7 +45,6 @@ public class OrderController {
      * @return all orders
      */
     @GET
-    @RolesAllowed({"admin", "client"})
     @Operation(summary = "Get all orders", description = "Returns all orders")
     @APIResponse(responseCode = "200", description = "List of orders",
             content = @Content(mediaType = MediaType.APPLICATION_JSON,
@@ -79,7 +77,6 @@ public class OrderController {
      */
     @GET
     @Path("/{id}")
-    @RolesAllowed({"admin", "client"})
     @Operation(summary = "Get order by ID", description = "Returns an order by its ID")
     @APIResponse(responseCode = "200", description = "The order",
             content = @Content(mediaType = MediaType.APPLICATION_JSON,
@@ -115,7 +112,6 @@ public class OrderController {
      * @return the response
      */
     @POST
-    @RolesAllowed({"admin", "client"})
     @Operation(summary = "Create a new order", description = "Creates a new order")
     @APIResponse(responseCode = "201", description = "Order created",
             content = @Content(mediaType = MediaType.APPLICATION_JSON,
@@ -125,9 +121,8 @@ public class OrderController {
     @APIResponse(responseCode = "403", description = "Forbidden")
     public Response createOrder(@Valid OrderCreateDTO orderCreateDTO) {
         logger.info("Creating new order for customer: {}", orderCreateDTO.getCustomerId());
-        logger.debug("Order details: items count={}, shipping address={}",
-                orderCreateDTO.getItems() != null ? orderCreateDTO.getItems().size() : 0,
-                orderCreateDTO.getShippingAddress());
+        logger.debug("Order details: items count={}",
+                orderCreateDTO.getItems() != null ? orderCreateDTO.getItems().size() : 0);
 
         try {
             OrderDTO createdOrder = orderService.createOrder(orderCreateDTO);
@@ -153,7 +148,6 @@ public class OrderController {
      */
     @PUT
     @Path("/{id}")
-    @RolesAllowed({"admin", "client"})
     @Operation(summary = "Update an order", description = "Updates an existing order")
     @APIResponse(responseCode = "200", description = "Order updated",
             content = @Content(mediaType = MediaType.APPLICATION_JSON,
@@ -164,8 +158,7 @@ public class OrderController {
     @APIResponse(responseCode = "403", description = "Forbidden")
     public Response updateOrder(@PathParam("id") Long id, @Valid OrderUpdateDTO orderUpdateDTO) {
         logger.info("Updating order with ID: {}", id);
-        logger.debug("Update details: status={}, shipping address={}",
-                orderUpdateDTO.getStatus(), orderUpdateDTO.getShippingAddress());
+        logger.debug("Update details: status={}", orderUpdateDTO.getStatus());
 
         try {
             OrderDTO updatedOrder = orderService.updateOrder(id, orderUpdateDTO);
@@ -193,7 +186,6 @@ public class OrderController {
      */
     @DELETE
     @Path("/{id}")
-    @RolesAllowed("admin")
     @Operation(summary = "Delete an order", description = "Deletes an order")
     @APIResponse(responseCode = "204", description = "Order deleted")
     @APIResponse(responseCode = "404", description = "Order not found")
@@ -224,7 +216,6 @@ public class OrderController {
      */
     @GET
     @Path("/customer/{customerId}")
-    @RolesAllowed({"admin", "client"})
     @Operation(summary = "Find orders by customer ID", description = "Returns orders for the specified customer")
     @APIResponse(responseCode = "200", description = "List of orders",
             content = @Content(mediaType = MediaType.APPLICATION_JSON,
@@ -257,7 +248,6 @@ public class OrderController {
      */
     @GET
     @Path("/status/{status}")
-    @RolesAllowed("admin")
     @Operation(summary = "Find orders by status", description = "Returns orders with the specified status")
     @APIResponse(responseCode = "200", description = "List of orders",
             content = @Content(mediaType = MediaType.APPLICATION_JSON,
@@ -291,7 +281,6 @@ public class OrderController {
      */
     @GET
     @Path("/date-range")
-    @RolesAllowed("admin")
     @Operation(summary = "Find orders by date range", description = "Returns orders created between the specified dates")
     @APIResponse(responseCode = "200", description = "List of orders",
             content = @Content(mediaType = MediaType.APPLICATION_JSON,
@@ -325,39 +314,6 @@ public class OrderController {
     }
 
     /**
-     * Find by payment method response.
-     *
-     * @param paymentMethod the payment method
-     * @return the response
-     */
-    @GET
-    @Path("/payment-method/{paymentMethod}")
-    @RolesAllowed("admin")
-    @Operation(summary = "Find orders by payment method", description = "Returns orders with the specified payment method")
-    @APIResponse(responseCode = "200", description = "List of orders",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON,
-                    schema = @Schema(implementation = OrderDTO.class)))
-    @APIResponse(responseCode = "401", description = "Unauthorized")
-    @APIResponse(responseCode = "403", description = "Forbidden")
-    public Response findByPaymentMethod(@PathParam("paymentMethod") String paymentMethod) {
-        logger.info("Finding orders with payment method: {}", paymentMethod);
-
-        try {
-            List<OrderDTO> orders = orderService.findByPaymentMethod(paymentMethod);
-            logger.info("Found {} orders with payment method: {}", orders.size(), paymentMethod);
-
-            return Response.ok()
-                    .entity(orders)
-                    .header("Content-Type", MediaType.APPLICATION_JSON)
-                    .encoding("UTF-8")
-                    .build();
-        } catch (Exception e) {
-            logger.error("Error finding orders with payment method: {}", paymentMethod, e);
-            throw e;
-        }
-    }
-
-    /**
      * Update order status response.
      *
      * @param id     the id
@@ -366,7 +322,6 @@ public class OrderController {
      */
     @PATCH
     @Path("/{id}/status/{status}")
-    @RolesAllowed({"admin", "client"})
     @Operation(summary = "Update order status", description = "Updates the status of an order")
     @APIResponse(responseCode = "200", description = "Order status updated",
             content = @Content(mediaType = MediaType.APPLICATION_JSON,
