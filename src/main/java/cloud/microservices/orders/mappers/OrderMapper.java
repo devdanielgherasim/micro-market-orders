@@ -35,6 +35,7 @@ public class OrderMapper {
         }
 
         List<OrderItemDTO> itemDTOs = order.getItems().stream()
+                .sorted((item1, item2) -> item1.getProductName().compareToIgnoreCase(item2.getProductName()))
                 .map(this::toOrderItemDTO)
                 .toList();
 

@@ -43,6 +43,30 @@ public class OrderService {
     }
 
     /**
+     * Get all orders with pagination.
+     *
+     * @param page the page number (0-based)
+     * @param size the page size
+     * @return list of orders for the requested page
+     */
+    @Transactional
+    public List<OrderDTO> getAllOrdersPaginated(int page, int size) {
+        return orderRepository.findAllPaginated(page, size).stream()
+                .map(orderMapper::toDTO)
+                .toList();
+    }
+
+    /**
+     * Count all orders.
+     *
+     * @return the total count of orders
+     */
+    @Transactional
+    public long countAllOrders() {
+        return orderRepository.count();
+    }
+
+    /**
      * Get order by ID.
      *
      * @param id the order ID
@@ -148,6 +172,32 @@ public class OrderService {
     }
 
     /**
+     * Find orders by customer ID with pagination.
+     *
+     * @param customerId the customer ID
+     * @param page the page number (0-based)
+     * @param size the page size
+     * @return list of orders for the customer for the requested page
+     */
+    @Transactional
+    public List<OrderDTO> findByCustomerIdPaginated(String customerId, int page, int size) {
+        return orderRepository.findByCustomerIdPaginated(customerId, page, size).stream()
+                .map(orderMapper::toDTO)
+                .toList();
+    }
+
+    /**
+     * Count orders by customer ID.
+     *
+     * @param customerId the customer ID
+     * @return the count of orders for the customer
+     */
+    @Transactional
+    public long countByCustomerId(String customerId) {
+        return orderRepository.countByCustomerId(customerId);
+    }
+
+    /**
      * Find orders by status.
      *
      * @param status the order status
@@ -158,6 +208,32 @@ public class OrderService {
         return orderRepository.findByStatus(status).stream()
                 .map(orderMapper::toDTO)
                 .toList();
+    }
+
+    /**
+     * Find orders by status with pagination.
+     *
+     * @param status the order status
+     * @param page the page number (0-based)
+     * @param size the page size
+     * @return list of orders with the specified status for the requested page
+     */
+    @Transactional
+    public List<OrderDTO> findByStatusPaginated(OrderStatus status, int page, int size) {
+        return orderRepository.findByStatusPaginated(status, page, size).stream()
+                .map(orderMapper::toDTO)
+                .toList();
+    }
+
+    /**
+     * Count orders by status.
+     *
+     * @param status the order status
+     * @return the count of orders with the specified status
+     */
+    @Transactional
+    public long countByStatus(OrderStatus status) {
+        return orderRepository.countByStatus(status);
     }
 
     /**
@@ -172,6 +248,34 @@ public class OrderService {
         return orderRepository.findByOrderDateBetween(startDate, endDate).stream()
                 .map(orderMapper::toDTO)
                 .toList();
+    }
+
+    /**
+     * Find orders created between the specified dates with pagination.
+     *
+     * @param startDate the start date
+     * @param endDate   the end date
+     * @param page the page number (0-based)
+     * @param size the page size
+     * @return list of orders created between the specified dates for the requested page
+     */
+    @Transactional
+    public List<OrderDTO> findByOrderDateBetweenPaginated(LocalDateTime startDate, LocalDateTime endDate, int page, int size) {
+        return orderRepository.findByOrderDateBetweenPaginated(startDate, endDate, page, size).stream()
+                .map(orderMapper::toDTO)
+                .toList();
+    }
+
+    /**
+     * Count orders created between the specified dates.
+     *
+     * @param startDate the start date
+     * @param endDate   the end date
+     * @return the count of orders created between the specified dates
+     */
+    @Transactional
+    public long countByOrderDateBetween(LocalDateTime startDate, LocalDateTime endDate) {
+        return orderRepository.countByOrderDateBetween(startDate, endDate);
     }
 
     /**
