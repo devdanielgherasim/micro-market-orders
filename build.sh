@@ -123,7 +123,8 @@ mvn ${MAVEN_CLI_OPTS} clean package -Dnative \
   -Dquarkus.container-image.tag="${CI_COMMIT_SHA}" \
   -Dquarkus.container-image.group="${IMAGE_GROUP}" \
   -Dquarkus.container-image.name="${CI_PROJECT_NAME}" \
-  -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21
+  -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21 \
+  -Dquarkus.docker.dockerfile-native-path=src/main/docker/Dockerfile.native-micro
 
 echo "===== Build completed successfully ====="
 echo "Docker image: ${CONTAINER_REGISTRY_NAME}/${IMAGE_GROUP}/${CI_PROJECT_NAME}:${CI_COMMIT_SHA}"
