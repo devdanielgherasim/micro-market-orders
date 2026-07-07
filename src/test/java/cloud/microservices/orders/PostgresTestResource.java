@@ -22,6 +22,7 @@ public class PostgresTestResource implements QuarkusTestResourceLifecycleManager
         config.put("quarkus.hibernate-orm.database.generation", "drop-and-create");
         config.put("quarkus.hibernate-orm.sql-load-script", "no-file");
         config.put("quarkus.otel.enabled", "false");
+        config.put("quarkus.oidc.enabled", "false");
         config.put("quarkus.rest-client.audit-service.url", "http://localhost:1");
         config.put("quarkus.rest-client.catalog-api.url", "http://localhost:1");
         return config;
