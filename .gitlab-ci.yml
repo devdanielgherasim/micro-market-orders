@@ -40,8 +40,6 @@ variables:
 test:
   stage: test
   image: ${CI_TOOLS_IMAGE}
-  services:
-    - name: docker:dind
   before_script:
     - chmod +x ./mvnw
   script:

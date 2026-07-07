@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 
 @QuarkusIntegrationTest
-@QuarkusTestResource(PostgresTestResource.class)
+@QuarkusTestResource(value = PostgresTestResource.class, restrictToAnnotatedClass = true)
 class OrderControllerIT {
 
     @Test

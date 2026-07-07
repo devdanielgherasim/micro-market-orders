@@ -1,11 +1,9 @@
 package cloud.microservices.orders.controllers;
 
-import cloud.microservices.orders.PostgresTestResource;
 import cloud.microservices.orders.clients.ProductClient;
 import cloud.microservices.orders.services.AuditService;
 import cloud.microservices.orders.services.ProductService;
 import io.quarkus.test.InjectMock;
-import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
@@ -21,7 +19,6 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
-@QuarkusTestResource(PostgresTestResource.class)
 class OrderControllerTest {
 
     @InjectMock

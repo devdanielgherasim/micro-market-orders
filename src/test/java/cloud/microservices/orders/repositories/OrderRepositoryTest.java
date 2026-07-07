@@ -1,11 +1,9 @@
 package cloud.microservices.orders.repositories;
 
-import cloud.microservices.orders.PostgresTestResource;
 import cloud.microservices.orders.entities.Order;
 import cloud.microservices.orders.entities.OrderItem;
 import cloud.microservices.orders.entities.OrderStatus;
 import io.quarkus.test.TestTransaction;
-import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
@@ -16,7 +14,6 @@ import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest
-@QuarkusTestResource(PostgresTestResource.class)
 class OrderRepositoryTest {
 
     @Inject
