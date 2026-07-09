@@ -147,7 +147,7 @@ jobs:
       gcp-region: europe-west3
       deployment-repo: devdanielgherasim/micro-market-deployment
       promoted-app: orders
-      trigger-promotion: false
+      trigger-promotion: true
       trivy-ignore-cves: |
         # CVE-2026-54369: HIGH, libacl 2.2.53-3.el8, symlink-traversal privilege
         # escalation. Lives in the quay.io/quarkus/quarkus-micro-image:2.0 base
