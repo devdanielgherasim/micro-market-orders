@@ -133,7 +133,7 @@ jobs:
       - build-and-push-native
     uses: devdanielgherasim/micro-market-utilities/.github/workflows/image-supply-chain.yml@main
     with:
-      cloud-provider: aws
+      cloud-provider: ${{ env.CLOUD_PROVIDER }}
       container-registry-name: ${{ needs.build-and-push-native.outputs.container-registry-name }}
       image-repository: ${{ needs.build-and-push-native.outputs.image-repository }}
       image-ref: ${{ needs.build-and-push-native.outputs.image-ref }}
