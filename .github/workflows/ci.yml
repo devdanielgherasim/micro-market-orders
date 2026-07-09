@@ -146,6 +146,14 @@ jobs:
       deployment-repo: devdanielgherasim/micro-market-deployment
       promoted-app: orders
       trigger-promotion: false
+      trivy-ignore-cves: |
+        # CVE-2026-54369: HIGH, libacl 2.2.53-3.el8, symlink-traversal privilege
+        # escalation. Lives in the quay.io/quarkus/quarkus-micro-image:2.0 base
+        # image (upstream Quarkus-maintained, not something this repo installs
+        # or controls) and isn't reachable from this non-root, single-process
+        # native-image container. Accepted as a lab-scope risk 2026-07-09 --
+        # revisit once a patched base image is available.
+        CVE-2026-54369
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
