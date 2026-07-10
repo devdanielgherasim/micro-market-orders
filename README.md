@@ -83,13 +83,13 @@ Testcontainers requires a working Docker daemon to run these tests locally.
 
 ## CI/CD
 
-`.gitlab-ci.yml` includes a shared template, `ci-templates/java-service.gitlab-ci.yml`, from the `microservices1691715/utilities` project (`ref: main`). The combined pipeline stages, as actually defined, are:
+CI runs on GitHub Actions (`.github/workflows/ci.yml`; migrated from GitLab
+CI, see `Sources/plans/2026-07-08-gitlab-to-github-migration.md`):
 
-1. **test** — this repo's own job runs `./mvnw test` (JUnit report published); GitLab SAST/Dependency/Secret analyzers also run in this stage via the shared template.
-2. **scan** — `security-scan-gate` (from the shared template): fails the pipeline on HIGH/CRITICAL findings from the above scanners.
-3. **build** — this repo's `build-and-push-native` job runs `./build.sh` (native image build + push) and exports `build.env` (`IMAGE_REF`/`IMAGE_DIGEST`) via a shared `.export-image-ref` script reference.
-4. **sign** — `image-supply-chain` (from the shared template): Trivy image scan (CRITICAL gate), Syft SBOM generation, cosign keyless sign + attest.
-5. **promote** — cosign verify gate, then triggers the promotion pipeline in the separate `deployment` repo.
+1. **test** — this repo's own job runs `./mvnw test` (JUnit report published as a workflow artifact).
+2. **security-scan-gate** — calls the reusable workflow in `devdanielgherasim/micro-market-utilities`: CodeQL (HIGH/CRITICAL severity gate), gitleaks, dependency-review.
+3. **build-and-push-native** — logs into the cloud registry via the shared `cloud-registry-login` composite action (OIDC), runs `./build.sh` (native image build + push), then resolves the pushed image reference/digest via `resolve-image-ref`.
+4. **image-supply-chain** — calls the reusable workflow in `utilities`: Trivy image scan (CRITICAL gate), Syft SBOM, cosign keyless sign + verify, then a `repository_dispatch` trigger into the `deployment` repo's promotion workflow.
 
 `build.sh` is multi-cloud aware (`CLOUD_PROVIDER` = `aws` (default) / `azure` / `gcp`), resolving/logging into the right container registry (ECR, ACR, or Artifact Registry) before running `mvn ... clean package -Dnative -Dquarkus.container-image.push=true ...`. For Azure it needs `ARM_CLIENT_ID`/`ARM_CLIENT_SECRET` (or OIDC federation); for AWS, `AWS_ACCOUNT_ID`/`AWS_REGION`; for GCP, workload-identity federation vars. `CONTAINER_REGISTRY_NAME`, `CI_COMMIT_SHA`, `CI_PROJECT_NAME`, and `PROJECT_NAMESPACE` (default `danielgherasim-microservices`) are used across all providers.
 
